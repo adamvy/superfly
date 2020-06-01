@@ -417,7 +417,14 @@ CLASS({
   properties: [ 'Expr fn', 'Expr args' ],
   methods: [
     function eval(x) {
-      return this.fn.eval(x)(this.args.eval(x));
+      var fn = this.fn.eval(x);
+      var args = this.args.eval(x);
+      
+      var y = x.subFrame();
+      // TODO args is not actually an array in any test cases.
+      y.set(fn.args[0], SLOT(args));
+      
+      return fn.expr.eval(y);
     },
     function toJS(x) {
       return `(${this.fn.toJS(x)})(${this.args.toJS(x)})`;
@@ -432,14 +439,7 @@ CLASS({
   properties: [ 'args', 'Expr expr' ],
   methods: [
     function eval(x) {
-      var self = this;
-      return function() {
-        var y = x.subFrame();
-        for ( var i = 0 ; i < self.args.length ; i++ ) {
-          y.set(self.args[i], SLOT(arguments[i]));
-        }
-        return self.expr.eval(y);
-      }
+      return this;
     },
     function toJS(x) {
       return `function(${this.args.join(',')}) { return ${this.expr.toJS(x)} }`;
@@ -642,7 +642,7 @@ console.log('partialEval + eval: ', PLUS(5, 4).partialEval().eval());
 
 title('Apply');
 test(APPLY(
-  function(n) { return n*2; },
+  FN(['n'], MUL('n', 2)),
   2));
 
 title('Minus');
