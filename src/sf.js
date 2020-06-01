@@ -1,5 +1,5 @@
 
-const TEST_JS = false;
+const TEST_JS = true;
 
 
 function CLASS(model) {
@@ -23,7 +23,7 @@ function CLASS(model) {
       };
     });
   }
-
+  
   var proto_ = {
     toString() {
       var s = model.name + '(';
@@ -41,6 +41,7 @@ function CLASS(model) {
     },
     partialEval() { return this; },
     toJS() { return '<JS NOT DEFINED for ' + model.NAME + '>'; },
+    toC() { return '#error C NOT DEFINED FOR ' + model.NAME + '>'; },
     initArgs(...args) {
       for ( var i = 0 ; i < model.properties.length && i < args.length ; i++ ) {
         this[model.properties[i].name] = model.properties[i].adapt(args[i]);
@@ -81,6 +82,9 @@ CLASS({
     },
     function toJS(x) {
       return this.value.toString();
+    },
+    function toC(x) {
+      return this.value.toString();
     }
   ]
 });
@@ -95,6 +99,9 @@ CLASS({
     },
     function toJS(x) {
       return `(${this.arg1.toJS(x)} == ${this.arg2.toJS(x)})`;
+    },
+    function toC(x) {
+      return `(${this.arg1.toC(x)} == ${this.arg2.toC(x)})`;
     }
   ]
 });
@@ -109,6 +116,9 @@ CLASS({
     },
     function toJS(x) {
       return `(${this.arg1.toJS(x)} < ${this.arg2.toJS(x)})`;
+    },
+    function toC(x) {
+      return `(${this.arg1.toC(x)} < ${this.arg2.toC(x)})`;
     }
   ]
 });
@@ -123,6 +133,9 @@ CLASS({
     },
     function toJS(x) {
       return `(${this.arg1.toJS(x)} > ${this.arg2.toJS(x)})`;
+    },
+    function toC(x) {
+      return `(${this.arg1.toC(x)} > ${this.arg2.toC(x)})`;
     }
   ]
 });
@@ -137,6 +150,9 @@ CLASS({
     },
     function toJS(x) {
       return `(${this.arg1.toJS(x)} <= ${this.arg2.toJS(x)})`;
+    },
+    function toC(x) {
+      return `(${this.arg1.toC(x)} <= ${this.arg2.toC(x)})`;
     }
   ]
 });
@@ -151,6 +167,9 @@ CLASS({
     },
     function toJS(x) {
       return `(${this.arg1.toJS(x)} >= ${this.arg2.toJS(x)})`;
+    },
+    function toC(x) {
+      return `(${this.arg1.toC(x)} >= ${this.arg2.toC(x)})`;
     }
   ]
 });
@@ -185,6 +204,9 @@ CLASS({
 
     function toJS(x) {
       return `(${this.arg1.toJS(x)} && ${this.arg2.toJS(x)})`;
+    },
+    function toC(x) {
+      return `(${this.arg1.toC(x)} && ${this.arg2.toC(x)})`;
     }
   ]
 });
@@ -217,6 +239,9 @@ CLASS({
     },
     function toJS(x) {
       return `(${this.arg1.toJS(x)} || ${this.arg2.toJS(x)})`;
+    },
+    function toC(x) {
+      return `(${this.arg1.toC(x)} || ${this.arg2.toC(x)})`;
     }
   ]
 });
@@ -231,6 +256,9 @@ CLASS({
     },
     function toJS(x) {
       return `(! ${this.expr.toJS(x)})`;
+    },
+    function toC(x) {
+      return `(! ${this.expr.toC(x)})`;
     }
   ]
 });
@@ -256,6 +284,9 @@ CLASS({
     },
     function toJS(x) {
       return `(${this.arg1.toJS(x)} + ${this.arg2.toJS(x)})`;
+    },
+    function toC(x) {
+      return `(${this.arg1.toC(x)} + ${this.arg2.toC(x)})`;
     }
   ]
 });
@@ -293,6 +324,9 @@ CLASS({
     },
     function toJS(x) {
       return `(${this.arg1.toJS(x)} * ${this.arg2.toJS(x)})`;
+    },
+    function toC(x) {
+      return `(${this.arg1.toC(x)} * ${this.arg2.toC(x)})`;
     }
   ]
 });
@@ -324,6 +358,9 @@ CLASS({
     },
     function toJS(x) {
       return `(${this.arg1.toJS(x)} / ${this.arg2.toJS(x)})`;
+    },
+    function toC(x) {
+      return `(${this.arg1.toC(x)} / ${this.arg2.toC(x)})`;
     }
   ]
 });
@@ -350,6 +387,9 @@ CLASS({
 
     function toJS(x) {
       return `(${this.arg1.toJS(x)} - ${this.arg2.toJS(x)})`;
+    },
+    function toC(x) {
+      return `(${this.arg1.toC(x)} - ${this.arg2.toC(x)})`;
     }
   ]
 });
@@ -364,6 +404,10 @@ CLASS({
     },
     function toJS(x) {
       return `var ${this.key.toJS(x)} = ${this.value.toJS(x)}`
+    },
+    function toC(x) {
+      // TODO: Only ints supported ATM.
+      return `int ${this.key.toC(x)} = ${this.value.toC(x)}`
     }
   ]
 });
@@ -383,6 +427,10 @@ CLASS({
     },
     function toJS(x) {
       return `const ${this.key.toJS(x)} = ${this.value.toJS(x)}`
+    },
+    function toC(x) {
+      // TODO: Again only ints supported.
+      return `const int ${this.key.toC(x)} = ${this.value.toC(x)}`
     }
   ]
 });
@@ -407,6 +455,9 @@ CLASS({
     },
     function toJS(x) {
       return this.key.toJS(x);
+    },
+    function toC(x) {
+      return this.key.toC(x);
     }
   ]
 });
@@ -443,6 +494,9 @@ CLASS({
     },
     function toJS(x) {
       return `function(${this.args.join(',')}) { return ${this.expr.toJS(x)} }`;
+    },
+    function toC(x) {
+      this._cname = 'anon' + 
     }
   ]
 });
@@ -464,6 +518,12 @@ CLASS({
       // assumes that they are expression.
 
       return `( ( ${this.expr.toJS(x)} ) ? ( ${this.ifBlock.toJS(x)} ) : ( ${this.elseBlock.toJS(x)} ) )`;
+    },
+    function toC(x) {
+      // TODO: Are the if/else cases blocks or expressions?  This
+      // assumes that they are expression.
+
+      return `( ( ${this.expr.toC(x)} ) ? ( ${this.ifBlock.toC(x)} ) : ( ${this.elseBlock.toC(x)} ) )`;
     }
   ]
 });
@@ -498,6 +558,10 @@ CLASS({
     function toJS(x) {
       // TODO: Whats the right way to return the final value?
       return this.args.map(a => a.toJS(x)).join(';\n');
+    },
+    function toC(x) {
+      // TODO: Whats the right way to return the final value?
+      return this.args.map(a => a.toC(x)).join(';\n');
     }
   ]
 });
